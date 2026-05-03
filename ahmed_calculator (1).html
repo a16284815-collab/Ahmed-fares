@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahmed Fares Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-deep: #080b14;
+    --bg-card: #0f1322;
+    --bg-surface: #161c30;
+    --bg-input: #1c2338;
+    --accent: #e8b84b;
+    --accent-dim: #c49a35;
+    --accent-glow: rgba(232,184,75,0.18);
+    --accent-soft: rgba(232,184,75,0.08);
+    --text-primary: #f0f2f8;
+    --text-secondary: #8b93b0;
+    --text-muted: #4a5270;
+    --border: rgba(255,255,255,0.07);
+    --border-accent: rgba(232,184,75,0.3);
+    --btn-op: #1e2740;
+    --btn-num: #141929;
+    --btn-eq: #e8b84b;
+    --danger: #e85b4b;
+    --success: #4be87a;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-btn: 14px;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    overflow: hidden;
+  }
+
+  /* ───── STARS BACKGROUND ───── */
+  .stars-bg {
+    position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;
+  }
+  .stars-bg::before, .stars-bg::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: transparent;
+  }
+  .stars-bg::before {
+    width: 1px; height: 1px;
+    box-shadow:
+      120px 80px #fff, 240px 130px rgba(255,255,255,0.6), 380px 200px #fff,
+      50px 350px rgba(255,255,255,0.4), 600px 90px #fff, 720px 300px rgba(255,255,255,0.7),
+      850px 150px rgba(255,255,255,0.3), 900px 400px #fff, 1050px 60px rgba(255,255,255,0.5),
+      200px 500px rgba(255,255,255,0.6), 450px 550px #fff, 700px 480px rgba(255,255,255,0.4),
+      1100px 350px rgba(255,255,255,0.8), 1200px 200px rgba(255,255,255,0.3),
+      300px 700px rgba(255,255,255,0.5), 800px 720px #fff, 950px 600px rgba(255,255,255,0.6),
+      150px 620px rgba(255,255,255,0.3), 1150px 680px rgba(255,255,255,0.7),
+      500px 800px rgba(255,255,255,0.4), 650px 820px #fff, 1050px 750px rgba(255,255,255,0.5);
+  }
+  .glow-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.15;
+  }
+  .glow-orb-1 { width: 400px; height: 400px; background: #e8b84b; top: -100px; right: -80px; }
+  .glow-orb-2 { width: 350px; height: 350px; background: #4b8ee8; bottom: -80px; left: -60px; }
+  .glow-orb-3 { width: 250px; height: 250px; background: #e84b8e; top: 50%; left: 50%; transform: translate(-50%,-50%); opacity: 0.08; }
+
+  /* ───── PAGES ───── */
+  .page {
+    position: fixed; inset: 0; z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(20px);
+  }
+  .page.active {
+    opacity: 1; pointer-events: all; transform: translateY(0);
+  }
+
+  /* ───── LANDING PAGE ───── */
+  .landing-content {
+    text-align: center; z-index: 2; max-width: 700px;
+  }
+  .landing-logo {
+    width: 72px; height: 72px; margin: 0 auto 28px;
+    background: linear-gradient(135deg, var(--accent), #f5c870);
+    border-radius: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 28px; font-weight: 900; color: #000;
+    box-shadow: 0 0 40px rgba(232,184,75,0.4);
+    animation: pulse-logo 3s ease-in-out infinite;
+  }
+  @keyframes pulse-logo {
+    0%,100% { box-shadow: 0 0 40px rgba(232,184,75,0.4); }
+    50% { box-shadow: 0 0 70px rgba(232,184,75,0.6); }
+  }
+  .landing-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 3px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 20px; opacity: 0.85;
+  }
+  .landing-title-en {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 4.5vw, 42px);
+    font-weight: 700; line-height: 1.15;
+    background: linear-gradient(135deg, #f0f2f8 30%, var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 16px;
+  }
+  .landing-title-ar {
+    font-size: clamp(18px, 3.5vw, 30px); font-weight: 500;
+    color: var(--text-secondary); direction: rtl;
+    line-height: 1.5; margin-bottom: 48px;
+  }
+  .landing-divider {
+    width: 60px; height: 1px; background: var(--accent); margin: 0 auto 48px;
+    opacity: 0.4;
+  }
+  .btn-start {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 18px 56px; border-radius: 50px;
+    background: linear-gradient(135deg, var(--accent), #f5c870);
+    color: #000; font-family: 'Outfit', sans-serif;
+    font-size: 17px; font-weight: 600; letter-spacing: 0.5px;
+    border: none; cursor: pointer;
+    box-shadow: 0 8px 40px rgba(232,184,75,0.35);
+    transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+  }
+  .btn-start::before {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0); transition: background 0.3s;
+  }
+  .btn-start:hover { transform: translateY(-3px); box-shadow: 0 14px 50px rgba(232,184,75,0.5); }
+  .btn-start:hover::before { background: rgba(255,255,255,0.1); }
+  .btn-start:active { transform: translateY(-1px); }
+  .btn-start-arrow {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; transition: transform 0.3s;
+  }
+  .btn-start:hover .btn-start-arrow { transform: translateX(4px); }
+
+  /* ───── AUTH PAGE ───── */
+  .auth-card {
+    background: var(--bg-card); border-radius: 24px;
+    border: 1px solid var(--border);
+    padding: clamp(28px,5vw,48px) clamp(24px,5vw,44px);
+    width: 100%; max-width: 420px; z-index: 2;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  .auth-header { text-align: center; margin-bottom: 32px; }
+  .auth-logo-sm {
+    width: 48px; height: 48px; margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--accent), #f5c870);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 19px; font-weight: 900; color: #000;
+  }
+  .auth-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px; font-weight: 700; margin-bottom: 8px;
+  }
+  .auth-subtitle { font-size: 14px; color: var(--text-secondary); }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-secondary); margin-bottom: 7px;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .form-input {
+    width: 100%; padding: 12px 16px;
+    background: var(--bg-input); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-primary);
+    font-family: 'Outfit', sans-serif; font-size: 15px;
+    outline: none; transition: all 0.2s;
+  }
+  .form-input::placeholder { color: var(--text-muted); }
+  .form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .auth-error {
+    background: rgba(232,91,75,0.12); border: 1px solid rgba(232,91,75,0.3);
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 13px; color: #f08070; margin-bottom: 16px;
+    display: none;
+  }
+  .auth-error.visible { display: block; }
+
+  .btn-login {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--accent), #f5c870);
+    border: none; border-radius: var(--radius-sm);
+    color: #000; font-family: 'Outfit', sans-serif;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: all 0.3s; margin-top: 8px;
+  }
+  .btn-login:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(232,184,75,0.35); }
+  .btn-login:active { transform: translateY(0); }
+  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .auth-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 20px 0; color: var(--text-muted); font-size: 13px;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .btn-google {
+    width: 100%; padding: 13px;
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-primary);
+    font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-google:hover { border-color: var(--border-accent); background: var(--bg-input); }
+  .btn-google svg { flex-shrink: 0; }
+
+  .auth-footer { text-align: center; margin-top: 24px; font-size: 13px; color: var(--text-secondary); }
+  .auth-footer a { color: var(--accent); text-decoration: none; cursor: pointer; }
+
+  .auth-back {
+    position: absolute; top: 24px; left: 24px;
+    background: none; border: none; color: var(--text-secondary);
+    cursor: pointer; font-size: 13px; font-family: 'Outfit', sans-serif;
+    display: flex; align-items: center; gap: 6px;
+    transition: color 0.2s; z-index: 10;
+  }
+  .auth-back:hover { color: var(--text-primary); }
+
+  /* ───── CALCULATOR PAGE ───── */
+  .calc-page {
+    flex-direction: column;
+    background: transparent;
+  }
+  .calc-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 16px 24px; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(8,11,20,0.85); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .calc-header-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Orbitron', monospace; font-size: 14px;
+    font-weight: 700; letter-spacing: 0.5px;
+  }
+  .calc-header-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), #f5c870);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900; color: #000;
+  }
+  .calc-header-user {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .calc-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent-soft); border: 1px solid var(--border-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: var(--accent);
+  }
+  .btn-logout {
+    background: none; border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px;
+    color: var(--text-secondary); font-family: 'Outfit', sans-serif;
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  .calc-wrapper {
+    margin-top: 80px;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 20px; width: 100%; min-height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+  .calculator {
+    background: var(--bg-card); border-radius: 28px;
+    border: 1px solid var(--border);
+    padding: 24px; width: 100%; max-width: 340px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+  }
+
+  /* Display */
+  .calc-display {
+    background: var(--bg-deep); border-radius: 18px;
+    padding: 20px 20px 18px;
+    margin-bottom: 20px; min-height: 110px;
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    position: relative; overflow: hidden;
+  }
+  .calc-display::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+  .calc-expression {
+    font-size: 13px; color: var(--text-muted);
+    text-align: right; min-height: 20px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-bottom: 6px;
+  }
+  .calc-result {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(28px, 7vw, 38px); font-weight: 600;
+    text-align: right; color: var(--text-primary);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: color 0.15s;
+    line-height: 1.2;
+  }
+  .calc-result.accent { color: var(--accent); }
+
+  /* Grid */
+  .calc-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .btn {
+    border: none; border-radius: var(--radius-btn); cursor: pointer;
+    font-family: 'Outfit', sans-serif; font-weight: 500;
+    font-size: 18px; height: 66px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s ease;
+    position: relative; overflow: hidden; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0); transition: background 0.15s;
+    border-radius: inherit;
+  }
+  .btn:hover::after { background: rgba(255,255,255,0.05); }
+  .btn:active { transform: scale(0.94); }
+
+  .btn-num {
+    background: var(--btn-num);
+    color: var(--text-primary);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .btn-num:hover { border-color: rgba(255,255,255,0.12); }
+
+  .btn-op {
+    background: var(--btn-op);
+    color: var(--accent);
+    border: 1px solid var(--border-accent);
+    font-size: 22px; font-weight: 400;
+  }
+  .btn-op:hover { background: rgba(232,184,75,0.1); }
+
+  .btn-fn {
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    font-size: 14px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .btn-fn:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.15); }
+
+  .btn-del {
+    background: rgba(232,91,75,0.1);
+    color: var(--danger);
+    border: 1px solid rgba(232,91,75,0.25);
+    font-size: 15px;
+  }
+  .btn-del:hover { background: rgba(232,91,75,0.18); }
+
+  .btn-eq {
+    background: linear-gradient(135deg, var(--accent), #f5c870);
+    color: #000; border: none; font-weight: 700;
+    font-size: 22px; grid-column: span 1;
+    box-shadow: 0 4px 20px rgba(232,184,75,0.3);
+  }
+  .btn-eq:hover { box-shadow: 0 6px 28px rgba(232,184,75,0.45); }
+  .btn-eq:active { transform: scale(0.93); }
+
+  .btn-zero { grid-column: span 2; }
+  .btn-dot { font-size: 22px; font-weight: 700; }
+
+  /* History strip */
+  .calc-history {
+    margin-bottom: 14px; font-size: 12px; color: var(--text-muted);
+    text-align: right; min-height: 16px;
+  }
+
+  /* Ripple */
+  .ripple {
+    position: absolute; border-radius: 50%;
+    width: 80px; height: 80px; margin-top: -40px; margin-left: -40px;
+    background: rgba(255,255,255,0.08);
+    transform: scale(0); animation: ripple-anim 0.4s linear;
+    pointer-events: none;
+  }
+  @keyframes ripple-anim {
+    to { transform: scale(3); opacity: 0; }
+  }
+
+  /* ───── ANIMATIONS ───── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.7s ease both; }
+  .fade-up-1 { animation-delay: 0.1s; }
+  .fade-up-2 { animation-delay: 0.25s; }
+  .fade-up-3 { animation-delay: 0.4s; }
+  .fade-up-4 { animation-delay: 0.55s; }
+
+  /* ───── RESPONSIVE ───── */
+  @media (max-width: 400px) {
+    .btn { height: 58px; font-size: 16px; }
+    .btn-op { font-size: 20px; }
+    .calc-grid { gap: 8px; }
+    .calculator { padding: 18px; border-radius: 22px; }
+  }
+  @media (max-height: 700px) {
+    .calc-wrapper { padding: 12px; }
+    .btn { height: 56px; }
+    .calc-display { min-height: 90px; padding: 14px; }
+  }
+
+  /* Scrollbar */
+  .calc-wrapper::-webkit-scrollbar { width: 4px; }
+  .calc-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Stars background -->
+<div class="stars-bg">
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+  <div class="glow-orb glow-orb-3"></div>
+</div>
+
+<!-- ═══════════ PAGE 1: LANDING ═══════════ -->
+<div class="page active" id="page-landing">
+  <div class="landing-content">
+    <div class="landing-logo fade-up fade-up-1">AF</div>
+    <p class="landing-eyebrow fade-up fade-up-1">Ahmed Fares — 2025</p>
+    <h1 class="landing-title-en fade-up fade-up-2">Welcome to Ahmed Fares Calculator</h1>
+    <div class="landing-divider fade-up fade-up-2"></div>
+    <p class="landing-title-ar fade-up fade-up-3">مرحباً بك في الآلة الحاسبة الخاصة بـ Ahmed Fares</p>
+    <button class="btn-start fade-up fade-up-4" onclick="goToAuth()">
+      Get Started
+      <span class="btn-start-arrow">→</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 2: AUTH ═══════════ -->
+<div class="page" id="page-auth">
+  <button class="auth-back" onclick="goTo('landing')">← Back</button>
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo-sm">AF</div>
+      <h2 class="auth-title">Sign In</h2>
+      <p class="auth-subtitle">Access your personal calculator</p>
+    </div>
+
+    <div class="auth-error" id="auth-error">Invalid email or password. Please try again.</div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input type="email" id="email-input" class="form-input" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="pass-input" class="form-input" placeholder="Enter your password" autocomplete="current-password">
+    </div>
+
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Sign In</button>
+
+    <div class="auth-divider">or</div>
+
+    <button class="btn-google" onclick="doGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+
+    <p class="auth-footer">
+      Demo credentials: any email + password<br>
+      <a onclick="fillDemo()">Use demo account →</a>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 3: CALCULATOR ═══════════ -->
+<div class="page calc-page" id="page-calc">
+  <header class="calc-header">
+    <div class="calc-header-logo">
+      <div class="calc-header-icon">AF</div>
+      Ahmed Fares Calculator
+    </div>
+    <div class="calc-header-user">
+      <span class="calc-avatar" id="user-avatar">U</span>
+      <span id="user-name-display" style="font-size:13px;color:var(--text-secondary)"></span>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="calc-wrapper">
+    <div class="calculator">
+      <div class="calc-display">
+        <div class="calc-expression" id="calc-expr"></div>
+        <div class="calc-result" id="calc-result">0</div>
+      </div>
+
+      <div class="calc-grid">
+        <!-- Row 1 -->
+        <button class="btn btn-fn" onclick="clearAll()">AC</button>
+        <button class="btn btn-fn" onclick="toggleSign()">+/−</button>
+        <button class="btn btn-fn" onclick="percent()">%</button>
+        <button class="btn btn-op" onclick="setOp('÷')">÷</button>
+        <!-- Row 2 -->
+        <button class="btn btn-num" onclick="appendNum('7')">7</button>
+        <button class="btn btn-num" onclick="appendNum('8')">8</button>
+        <button class="btn btn-num" onclick="appendNum('9')">9</button>
+        <button class="btn btn-op" onclick="setOp('×')">×</button>
+        <!-- Row 3 -->
+        <button class="btn btn-num" onclick="appendNum('4')">4</button>
+        <button class="btn btn-num" onclick="appendNum('5')">5</button>
+        <button class="btn btn-num" onclick="appendNum('6')">6</button>
+        <button class="btn btn-op" onclick="setOp('−')">−</button>
+        <!-- Row 4 -->
+        <button class="btn btn-num" onclick="appendNum('1')">1</button>
+        <button class="btn btn-num" onclick="appendNum('2')">2</button>
+        <button class="btn btn-num" onclick="appendNum('3')">3</button>
+        <button class="btn btn-op" onclick="setOp('+')">+</button>
+        <!-- Row 5 -->
+        <button class="btn btn-del" onclick="deleteLast()">⌫</button>
+        <button class="btn btn-num" onclick="appendNum('0')">0</button>
+        <button class="btn btn-num btn-dot" onclick="appendDot()">.</button>
+        <button class="btn btn-eq" onclick="calculate()">=</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── NAVIGATION ───
+  function goTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById('page-' + page);
+    el.classList.add('active');
+    if (page !== 'landing') {
+      el.querySelectorAll('.fade-up').forEach(el => {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = '';
+      });
+    }
+  }
+  function goToAuth() {
+    if (isLoggedIn()) { goTo('calc'); return; }
+    goTo('auth');
+  }
+  function isLoggedIn() { return !!sessionStorage.getItem('af_user'); }
+
+  // ─── AUTH ───
+  document.getElementById('pass-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('email-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('pass-input').focus();
+  });
+
+  function showError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg; el.classList.add('visible');
+    setTimeout(() => el.classList.remove('visible'), 3500);
+  }
+
+  function doLogin() {
+    const email = document.getElementById('email-input').value.trim();
+    const pass = document.getElementById('pass-input').value;
+    if (!email) { showError('Please enter your email address.'); return; }
+    if (!pass) { showError('Please enter your password.'); return; }
+    if (!email.includes('@')) { showError('Please enter a valid email address.'); return; }
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true; btn.textContent = 'Signing in...';
+    setTimeout(() => {
+      btn.disabled = false; btn.textContent = 'Sign In';
+      sessionStorage.setItem('af_user', JSON.stringify({ name: email.split('@')[0], email, method: 'email' }));
+      loadUserUI(); goTo('calc');
+    }, 800);
+  }
+
+  function doGoogleLogin() {
+    const btn = document.querySelector('.btn-google');
+    btn.disabled = true; btn.textContent = 'Connecting to Google...';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google`;
+      sessionStorage.setItem('af_user', JSON.stringify({ name: 'Google User', email: 'user@gmail.com', method: 'google' }));
+      loadUserUI(); goTo('calc');
+    }, 1000);
+  }
+
+  function fillDemo() {
+    document.getElementById('email-input').value = 'ahmed@example.com';
+    document.getElementById('pass-input').value = 'demo1234';
+  }
+
+  function doLogout() {
+    sessionStorage.removeItem('af_user');
+    clearAll(); goTo('landing');
+  }
+
+  function loadUserUI() {
+    const user = JSON.parse(sessionStorage.getItem('af_user') || '{}');
+    const name = user.name || 'User';
+    document.getElementById('user-name-display').textContent = name;
+    document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+  }
+
+  // ─── CALCULATOR ───
+  let currentVal = '0';
+  let prevVal = '';
+  let operator = null;
+  let shouldReset = false;
+  let expression = '';
+
+  function updateDisplay() {
+    const res = document.getElementById('calc-result');
+    const expr = document.getElementById('calc-expr');
+    let display = currentVal;
+    if (display.length > 12) display = parseFloat(display).toExponential(4);
+    res.textContent = display;
+    res.classList.toggle('accent', operator !== null && shouldReset);
+    expr.textContent = expression;
+  }
+
+  function appendNum(n) {
+    addRipple(event);
+    if (shouldReset) { currentVal = n; shouldReset = false; }
+    else {
+      if (currentVal === '0' && n !== '.') currentVal = n;
+      else if (currentVal.length < 12) currentVal += n;
+    }
+    updateDisplay();
+  }
+
+  function appendDot() {
+    addRipple(event);
+    if (shouldReset) { currentVal = '0.'; shouldReset = false; updateDisplay(); return; }
+    if (!currentVal.includes('.')) currentVal += '.';
+    updateDisplay();
+  }
+
+  function setOp(op) {
+    addRipple(event);
+    if (operator && !shouldReset) {
+      const result = compute();
+      prevVal = String(result);
+      expression = formatNum(result) + ' ' + op;
+      currentVal = String(result);
+    } else {
+      prevVal = currentVal;
+      expression = formatNum(parseFloat(currentVal)) + ' ' + op;
+    }
+    operator = op; shouldReset = true;
+    updateDisplay();
+  }
+
+  function calculate() {
+    addRipple(event);
+    if (!operator || !prevVal) return;
+    const result = compute();
+    expression = '';
+    currentVal = String(result);
+    operator = null; prevVal = ''; shouldReset = true;
+    document.getElementById('calc-result').classList.add('accent');
+    setTimeout(() => document.getElementById('calc-result').classList.remove('accent'), 300);
+    updateDisplay();
+  }
+
+  function compute() {
+    const a = parseFloat(prevVal), b = parseFloat(currentVal);
+    let r;
+    if (operator === '+') r = a + b;
+    else if (operator === '−') r = a - b;
+    else if (operator === '×') r = a * b;
+    else if (operator === '÷') r = b !== 0 ? a / b : 'Error';
+    if (r === 'Error') return 'Error';
+    r = Math.round(r * 1e10) / 1e10;
+    return r;
+  }
+
+  function formatNum(n) {
+    if (isNaN(n)) return n;
+    return parseFloat(n.toString());
+  }
+
+  function clearAll() {
+    addRipple(event);
+    currentVal = '0'; prevVal = ''; operator = null; shouldReset = false; expression = '';
+    updateDisplay();
+  }
+
+  function deleteLast() {
+    addRipple(event);
+    if (shouldReset) return;
+    if (currentVal.length > 1 && currentVal !== 'Error') currentVal = currentVal.slice(0, -1);
+    else currentVal = '0';
+    updateDisplay();
+  }
+
+  function toggleSign() {
+    addRipple(event);
+    if (currentVal !== '0' && currentVal !== 'Error') {
+      currentVal = currentVal.startsWith('-') ? currentVal.slice(1) : '-' + currentVal;
+      updateDisplay();
+    }
+  }
+
+  function percent() {
+    addRipple(event);
+    if (currentVal !== 'Error') {
+      currentVal = String(Math.round(parseFloat(currentVal) / 100 * 1e10) / 1e10);
+      updateDisplay();
+    }
+  }
+
+  function addRipple(e) {
+    if (!e || !e.currentTarget) return;
+    const btn = e.currentTarget;
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    ripple.style.left = ((e.clientX || rect.left + rect.width/2) - rect.left) + 'px';
+    ripple.style.top = ((e.clientY || rect.top + rect.height/2) - rect.top) + 'px';
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 450);
+  }
+
+  // ─── KEYBOARD SUPPORT ───
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('page-calc').classList.contains('active')) return;
+    if (e.key >= '0' && e.key <= '9') appendNum(e.key);
+    else if (e.key === '.') appendDot();
+    else if (e.key === '+') setOp('+');
+    else if (e.key === '-') setOp('−');
+    else if (e.key === '*') setOp('×');
+    else if (e.key === '/') { e.preventDefault(); setOp('÷'); }
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') deleteLast();
+    else if (e.key === 'Escape') clearAll();
+    else if (e.key === '%') percent();
+  });
+
+  // Init
+  updateDisplay();
+  if (isLoggedIn()) { loadUserUI(); }
+</script>
+</body>
+</html>
